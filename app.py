@@ -30,12 +30,15 @@ class PostSchema(ma.Schema):
     class Meta:
         fields = ('id', 'title', 'body')
 
+
+
 # Init PostSchema
-post_schema = PostSchema(strict=True)
-posts_schema = PostSchema(many=True, strict=True)
+post_schema = PostSchema()
+posts_schema = PostSchema(many=True)
 
-# ROUTES
+# ROUTES ----------------------------------------------------------------
 
+# post a post
 @app.route('/post', methods=['POST'])
 def add_post():
     title = request.json['title']
@@ -48,7 +51,27 @@ def add_post():
 
     return post_schema.jsonify(new_post)
 
-    
+# get all posts
+@app.route('/post', methods=['GET'])
+def get_posts():
+    all_posts = Post.query.all()
+    result = posts_schema.dump(all_posts)
+    return jsonify(result)
+
+# get a post by id
+@app.route('/post/<id>', methods=['GET'])
+def get_post(id):
+    post = Post.query.get(id)
+    result = post_schema.jsonify(post)
+    return result
+
+# delete a post by id
+@app.route('/post/<id>', methods=['DELETE'])
+def delete_post(id):
+    post = Post.query.get(id)
+    db.session.delete(post)
+    db.session.commit()
+    return post_schema.jsonify(post)
 
 # Run Server
 if __name__ == '__main__':
